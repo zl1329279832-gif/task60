@@ -18,4 +18,6 @@ public interface CheweiDao extends BaseMapper<CheweiEntity> {
 
    List<CheweiView> selectListView(Pagination page,@Param("params")Map<String,Object> params);
 
+   CheweiEntity selectByIdForUpdate(@Param("id") Integer id);
+
 }

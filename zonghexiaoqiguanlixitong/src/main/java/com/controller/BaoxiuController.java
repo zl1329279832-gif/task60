@@ -144,6 +144,9 @@ public class BaoxiuController {
         else if("用户".equals(role))
             baoxiu.setYonghuId(Integer.valueOf(String.valueOf(request.getSession().getAttribute("userId"))));
 
+        // 新建工单强制为"已提交"状态
+        baoxiu.setBaoxiuZhuangtaiTypes(1);
+
         Wrapper<BaoxiuEntity> queryWrapper = new EntityWrapper<BaoxiuEntity>()
             .eq("yonghu_id", baoxiu.getYonghuId())
             .eq("baoxiu_name", baoxiu.getBaoxiuName())
@@ -180,8 +183,27 @@ public class BaoxiuController {
                 baoxiu.setBaoxiuPhoto(null);
         }
 
+            // 状态变更必须走 advanceStatus 接口，update 不允许改状态
+            baoxiu.setBaoxiuZhuangtaiTypes(oldBaoxiuEntity.getBaoxiuZhuangtaiTypes());
+
             baoxiuService.updateById(baoxiu);//根据id更新
             return R.ok();
+    }
+
+    /**
+    * 推进报修工单状态
+    */
+    @RequestMapping("/advanceStatus")
+    public R advanceStatus(@RequestBody Map<String, Object> params, HttpServletRequest request){
+        Integer baoxiuId = Integer.valueOf(String.valueOf(params.get("id")));
+        Integer newStatus = Integer.valueOf(String.valueOf(params.get("baoxiuZhuangtaiTypes")));
+        String role = String.valueOf(request.getSession().getAttribute("role"));
+        try {
+            baoxiuService.advanceStatus(baoxiuId, newStatus, role);
+            return R.ok();
+        } catch (RuntimeException e) {
+            return R.error(511, e.getMessage());
+        }
     }
 
 
@@ -312,12 +334,14 @@ public class BaoxiuController {
     @RequestMapping("/add")
     public R add(@RequestBody BaoxiuEntity baoxiu, HttpServletRequest request){
         logger.debug("add方法:,,Controller:{},,baoxiu:{}",this.getClass().getName(),baoxiu.toString());
+        // 用户提交工单强制为"已提交"状态
+        baoxiu.setBaoxiuZhuangtaiTypes(1);
+
         Wrapper<BaoxiuEntity> queryWrapper = new EntityWrapper<BaoxiuEntity>()
             .eq("yonghu_id", baoxiu.getYonghuId())
             .eq("baoxiu_name", baoxiu.getBaoxiuName())
             .eq("baoxiu_types", baoxiu.getBaoxiuTypes())
             .eq("baoxiu_zhuangtai_types", baoxiu.getBaoxiuZhuangtaiTypes())
-//            .notIn("baoxiu_types", new Integer[]{102})
             ;
         logger.info("sql语句:"+queryWrapper.getSqlSegment());
         BaoxiuEntity baoxiuEntity = baoxiuService.selectOne(queryWrapper);

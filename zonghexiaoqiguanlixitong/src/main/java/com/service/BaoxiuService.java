@@ -19,4 +19,13 @@ public interface BaoxiuService extends IService<BaoxiuEntity> {
     */
      PageUtils queryPage(Map<String, Object> params);
 
+    /**
+     * 推进报修工单状态
+     * 合法转换：已提交(1)→已接单(2)→处理中(3)→已完结(4)
+     * @param baoxiuId 报修工单ID
+     * @param newStatus 目标状态
+     * @param role 当前操作角色
+     */
+    void advanceStatus(Integer baoxiuId, Integer newStatus, String role);
+
 }
