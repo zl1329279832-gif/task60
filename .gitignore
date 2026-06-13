@@ -1,0 +1,29 @@
+# ===== Java =====
+target/
+*.class
+*.jar
+*.war
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# ===== Node / Vue =====
+node_modules/
+npm-debug.log*
+
+# ===== Docker / Secrets =====
+.env
+.env.local
+.env.*.local
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Uploads (dev local) =====
+uploads/

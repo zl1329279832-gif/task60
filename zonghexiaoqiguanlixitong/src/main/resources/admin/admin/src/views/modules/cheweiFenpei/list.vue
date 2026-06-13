@@ -62,7 +62,7 @@
                         <a style="text-decoration:none" class="el-button el-button--success"
                            v-if="isAuth('cheweiFenpei','导入导出')"
                            icon="el-icon-download"
-                           href="http://localhost:8080/zonghexiaoqiguanlixitong/upload/cheweiFenpeiMuBan.xls"
+                           :href="this.$base.url + 'upload/cheweiFenpeiMuBan.xls'"
                         >批量导入车位分配数据模板</a>
                         &nbsp;
                         <el-upload

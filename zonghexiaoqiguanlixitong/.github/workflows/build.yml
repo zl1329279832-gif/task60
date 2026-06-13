@@ -1,0 +1,90 @@
+# ============================================================
+# GitHub Actions CI/CD — 综合小区管理系统
+# 流程: mvn verify → Docker build → (可选) push 镜像
+# ============================================================
+name: Build & Package
+
+on:
+  push:
+    branches: [main, master, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+
+env:
+  IMAGE_NAME: xiaoqu-app
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # -------- 1. 检出代码 --------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -------- 2. JDK 8 --------
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: maven
+
+      # -------- 3. Node.js (前端构建) --------
+      - name: Set up Node.js 16
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: zonghexiaoqiguanlixitong/src/main/resources/admin/admin/package-lock.json
+
+      # -------- 4. Maven verify (编译 + 测试 + 打包) --------
+      - name: Maven verify (prod profile)
+        run: |
+          cd zonghexiaoqiguanlixitong
+          mvn -B verify -Pprod -DskipTests=false
+
+      # -------- 5. 上传 JAR artifact --------
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: zonghexiaoqiguanlixitong/target/*.jar
+
+      # -------- 6. Docker Build --------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata (tags & labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,prefix=
+
+      - name: Build & push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./zonghexiaoqiguanlixitong
+          file: ./zonghexiaoqiguanlixitong/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

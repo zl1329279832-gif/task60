@@ -1,0 +1,59 @@
+# ============ 综合小区管理系统 - Docker Compose ============
+# 使用方式:
+#   1. 创建 .env 文件 (参考 .env.example)
+#   2. docker-compose up -d
+#   3. 访问 http://<host>:8080/zonghexiaoqiguanlixitong/
+#
+version: '3.8'
+
+services:
+  # ---------- MySQL 8.0 ----------
+  mysql:
+    image: mysql:8.0
+    container_name: xiaoqu-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: zonghexiaoqiguanlixitong
+      MYSQL_USER: ${DB_USERNAME:-app_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3307:3306"   # 对外映射到 3307 避免与本地 MySQL 冲突
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------- Spring Boot 应用 ----------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xiaoqu-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/zonghexiaoqiguanlixitong?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USERNAME: ${DB_USERNAME:-app_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      APP_UPLOAD_DIR: /data/uploads
+    ports:
+      - "8080:8080"
+    volumes:
+      - upload_data:/data/uploads
+
+volumes:
+  mysql_data:
+    driver: local
+  upload_data:
+    driver: local

@@ -47,7 +47,7 @@
                         <a style="text-decoration:none" class="el-button el-button--success"
                            v-if="isAuth('sixin','导入导出')"
                            icon="el-icon-download"
-                           href="http://localhost:8080/zonghexiaoqiguanlixitong/upload/sixinMuBan.xls"
+                           :href="this.$base.url + 'upload/sixinMuBan.xls'"
                         >批量导入我的私信数据模板</a>
                         &nbsp;
                         <el-upload

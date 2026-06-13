@@ -43,7 +43,7 @@
                         <a style="text-decoration:none" class="el-button el-button--success"
                            v-if="isAuth('dictionary','导入导出')"
                            icon="el-icon-download"
-                           href="http://localhost:8080/zonghexiaoqiguanlixitong/upload/dictionaryMuBan.xls"
+                           :href="this.$base.url + 'upload/dictionaryMuBan.xls'"
                         >批量导入字典数据模板</a>
                         &nbsp;
                         <el-upload

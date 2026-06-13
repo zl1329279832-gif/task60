@@ -1,4 +1,4 @@
-# Tomcat
+# ============ 公共配置 (dev / prod 共享) ============
 server:
     tomcat:
         uri-encoding: UTF-8
@@ -7,19 +7,18 @@ server:
         context-path: /zonghexiaoqiguanlixitong
 
 spring:
+    profiles:
+        active: @spring.profiles.active@
     datasource:
         driverClassName: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://127.0.0.1:3306/zonghexiaoqiguanlixitong?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&useSSL=false
-        username: root
-        password: 123456
-
-
     servlet:
       multipart:
         max-file-size: 1000MB
         max-request-size: 1000MB
-    resources:
-      static-locations: classpath:static/,file:static/
+
+# 上传文件外部存储路径 (prod 挂载数据卷)
+app:
+    upload-dir: ${APP_UPLOAD_DIR:./uploads}
 
 #mybatis
 mybatis-plus:
@@ -46,8 +45,3 @@ mybatis-plus:
     call-setters-on-nulls: true
     #springboot 项目mybatis plus 设置 jdbcTypeForNull (oracle数据库需配置JdbcType.NULL, 默认是Other)
     jdbc-type-for-null: 'null'
-
-#打印sql语句
-logging:
-  level:
-    com.dao: debug

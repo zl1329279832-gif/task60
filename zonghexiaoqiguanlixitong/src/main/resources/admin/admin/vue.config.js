@@ -14,6 +14,8 @@ function publicPath(){
 module.exports = {
     // publicPath:"././",
     publicPath: publicPath(),
+    // 生产构建输出目录 (Maven prod profile 会通过 VUE_APP_OUTPUT_DIR 传入)
+    outputDir: process.env.VUE_APP_OUTPUT_DIR || 'dist',
     // 国际化配置 使用其它语言，默认情况下中文语言包依旧是被引入的
     configureWebpack: {
         // plugins: [
@@ -29,7 +31,7 @@ module.exports = {
 lintOnSave: false,
     devServer: {
         host: "0.0.0.0", //指定使用一个 host。默认是 localhost，这里默认值即可
-        port: 8081, //指定端口
+        port: 8081, // 指定端口
         hot: true, // 开启热更新
         https: false, // 是否开启https模式
         proxy: { // 请求代理服务器

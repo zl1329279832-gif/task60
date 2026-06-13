@@ -77,7 +77,7 @@
                         <a style="text-decoration:none" class="el-button el-button--success"
                            v-if="isAuth('baoxiu','导入导出')"
                            icon="el-icon-download"
-                           href="http://localhost:8080/zonghexiaoqiguanlixitong/upload/baoxiuMuBan.xls"
+                           :href="this.$base.url + 'upload/baoxiuMuBan.xls'"
                         >批量导入报修数据模板</a>
                         &nbsp;
                         <el-upload

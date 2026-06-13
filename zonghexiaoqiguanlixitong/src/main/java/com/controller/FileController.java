@@ -11,9 +11,12 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,6 +45,22 @@ import com.utils.R;
 public class FileController{
 	@Autowired
     private ConfigService configService;
+
+	@Value("${app.upload-dir:./uploads}")
+	private String uploadDir;
+
+	@PostConstruct
+	public void init() {
+		File dir = new File(uploadDir);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+	}
+
+	private File getUploadDir() {
+		return new File(uploadDir);
+	}
+
 	/**
 	 * 上传文件
 	 */
@@ -51,11 +70,7 @@ public class FileController{
 			throw new EIException("上传文件不能为空");
 		}
 		String fileExt = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".")+1);
-		File path = new File(ResourceUtils.getURL("classpath:static").getPath());
-		if(!path.exists()) {
-		    path = new File("");
-		}
-		File upload = new File(path.getAbsolutePath(),"/upload/");
+		File upload = getUploadDir();
 		if(!upload.exists()) {
 		    upload.mkdirs();
 		}
@@ -75,7 +90,7 @@ public class FileController{
 		}
 		return R.ok().put("file", fileName);
 	}
-	
+
 	/**
 	 * 下载文件
 	 */
@@ -83,11 +98,7 @@ public class FileController{
 	@RequestMapping("/download")
 	public ResponseEntity<byte[]> download(@RequestParam String fileName) {
 		try {
-			File path = new File(ResourceUtils.getURL("classpath:static").getPath());
-			if(!path.exists()) {
-			    path = new File("");
-			}
-			File upload = new File(path.getAbsolutePath(),"/upload/");
+			File upload = getUploadDir();
 			if(!upload.exists()) {
 			    upload.mkdirs();
 			}
@@ -97,8 +108,8 @@ public class FileController{
 					getResponse().sendError(403);
 				}*/
 				HttpHeaders headers = new HttpHeaders();
-			    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);    
-			    headers.setContentDispositionFormData("attachment", fileName);    
+			    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+			    headers.setContentDispositionFormData("attachment", fileName);
 			    return new ResponseEntity<byte[]>(FileUtils.readFileToByteArray(file),headers, HttpStatus.CREATED);
 			}
 		} catch (IOException e) {
@@ -106,5 +117,5 @@ public class FileController{
 		}
 		return new ResponseEntity<byte[]>(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
-	
+
 }

@@ -6,10 +6,9 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.2.2.RELEASE</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>com.jlwl</groupId>
-    <!-- 导入项目的名称 -->
     <artifactId>zonghexiaoqiguanlixitong</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>zonghexiaoqiguanlixitong</name>
@@ -19,6 +18,8 @@
         <java.version>1.8</java.version>
         <fastjson.version>1.2.8</fastjson.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+        <node.version>v16.20.2</node.version>
+        <npm.version>8.19.4</npm.version>
     </properties>
 
     <dependencies>
@@ -94,7 +95,6 @@
             <version>2.5</version>
         </dependency>
 
-
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
@@ -107,12 +107,6 @@
             <artifactId>fastjson</artifactId>
             <version>${fastjson.version}</version>
         </dependency>
-        <!--<dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>sqljdbc4</artifactId>
-            <scope>4.0</scope>
-            <version>4.0</version>
-        </dependency>-->
 
         <!-- 百度人工智能 -->
         <dependency>
@@ -164,13 +158,21 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-
-
     </dependencies>
 
-
     <build>
+        <!-- 主资源目录: 排除 admin/admin/dist/** (由 prod profile 重新构建) -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>admin/admin/dist/**</exclude>
+                    <exclude>admin/admin/node_modules/**</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -178,5 +180,100 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- ============ dev: 本地 IDE 开发 ============ -->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+            <build>
+                <resources>
+                    <!-- 开发模式: 使用预构建的 dist, 不重新 npm build -->
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <filtering>false</filtering>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+
+        <!-- ============ prod: Docker 容器生产构建 ============ -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+            </properties>
+            <build>
+                <resources>
+                    <!-- 主资源, 排除旧 dist -->
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <filtering>false</filtering>
+                        <excludes>
+                            <exclude>admin/admin/dist/**</exclude>
+                            <exclude>admin/admin/node_modules/**</exclude>
+                        </excludes>
+                    </resource>
+                    <!-- 新构建的 Vue dist -->
+                    <resource>
+                        <directory>target/vue-dist</directory>
+                        <targetPath>admin/admin/dist</targetPath>
+                        <filtering>false</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <!-- 前端构建: npm install + npm build -->
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>1.12.1</version>
+                        <configuration>
+                            <workingDirectory>src/main/resources/admin/admin</workingDirectory>
+                            <nodeVersion>${node.version}</nodeVersion>
+                            <npmVersion>${npm.version}</npmVersion>
+                            <installDirectory>target</installDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>install-node-and-npm</id>
+                                <goals>
+                                    <goal>install-node-and-npm</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                            </execution>
+                            <execution>
+                                <id>npm-install</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <arguments>install</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>npm-build</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <arguments>run build</arguments>
+                                    <environmentVariables>
+                                        <VUE_APP_OUTPUT_DIR>../../../../target/vue-dist</VUE_APP_OUTPUT_DIR>
+                                    </environmentVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

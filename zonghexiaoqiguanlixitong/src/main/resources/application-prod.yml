@@ -1,0 +1,18 @@
+# ============ 生产环境 (Docker 容器) ============
+# 数据库连接走环境变量, 不要在此写死密码
+spring:
+    datasource:
+        url: ${DB_URL:jdbc:mysql://mysql:3306/zonghexiaoqiguanlixitong?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true}
+        username: ${DB_USERNAME:app_user}
+        password: ${DB_PASSWORD}
+    resources:
+        static-locations: classpath:static/
+
+app:
+    upload-dir: /data/uploads
+
+# 生产环境关闭 SQL 日志
+logging:
+    level:
+        com.dao: warn
+        root: info
