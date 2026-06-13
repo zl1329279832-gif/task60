@@ -1,0 +1,68 @@
+# =====================================================================
+# 综合小区管理系统 — Docker Compose
+# =====================================================================
+# Usage:
+#   cp .env.example .env   # edit DB password
+#   docker-compose up -d --build
+#
+# Nginx reverse proxy example (add to your nginx.conf server block):
+#
+#   location /zonghexiaoqiguanlixitong/ {
+#       proxy_pass http://127.0.0.1:8080/zonghexiaoqiguanlixitong/;
+#       proxy_set_header Host $host;
+#       proxy_set_header X-Real-IP $remote_addr;
+#       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#       proxy_set_header X-Forwarded-Proto $scheme;
+#       client_max_body_size 1000m;
+#   }
+#
+# Frontend baseURL note:
+#   admin http.js uses baseURL: '/zonghexiaoqiguanlixitong' (relative).
+#   front http.js uses baseurl: '/zonghexiaoqiguanlixitong/'.
+#   Both work correctly behind nginx reverse proxy — no hostname needed.
+#   If you change the context-path, update both http.js files and rebuild Vue dist.
+# =====================================================================
+
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: xiaoqu-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${DB_NAME:-zonghexiaoqiguanlixitong}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: xiaoqu-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-zonghexiaoqiguanlixitong}
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - upload-data:/data/upload
+
+volumes:
+  mysql-data:
+  upload-data:

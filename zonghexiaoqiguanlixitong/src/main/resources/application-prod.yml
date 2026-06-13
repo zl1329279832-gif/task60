@@ -1,0 +1,21 @@
+# Prod profile — Docker / container deployment
+# All sensitive values come from environment variables; no secrets in this file.
+server:
+    tomcat:
+        uri-encoding: UTF-8
+    port: 8080
+    servlet:
+        context-path: /zonghexiaoqiguanlixitong
+
+spring:
+    datasource:
+        driverClassName: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://${DB_HOST:mysql}:${DB_PORT:3306}/${DB_NAME:zonghexiaoqiguanlixitong}?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&useSSL=false
+        username: ${DB_USER:root}
+        password: ${DB_PASSWORD:}
+    resources:
+      static-locations: classpath:static/
+
+file:
+  upload:
+    path: /data/upload/

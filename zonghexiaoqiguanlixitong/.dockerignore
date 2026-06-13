@@ -1,0 +1,10 @@
+target/
+**/node_modules/
+.idea/
+*.iml
+.git
+.gitignore
+*.md
+docker-compose.yml
+.env
+.github/

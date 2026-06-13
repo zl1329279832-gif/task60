@@ -77,7 +77,7 @@
                         <a style="text-decoration:none" class="el-button el-button--success"
                            v-if="isAuth('feiyong','导入导出')"
                            icon="el-icon-download"
-                           href="http://localhost:8080/zonghexiaoqiguanlixitong/upload/feiyongMuBan.xls"
+                           href="/zonghexiaoqiguanlixitong/upload/feiyongMuBan.xls"
                         >批量导入物业费缴纳数据模板</a>
                         &nbsp;
                         <el-upload

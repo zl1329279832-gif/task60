@@ -74,7 +74,7 @@ var indexNav = [
 ]
 
 // 已废弃,不用了
-var adminurl =  "http://localhost:8080/zonghexiaoqiguanlixitong/admin/dist/index.html#/login";
+var adminurl = "/zonghexiaoqiguanlixitong/admin/dist/index.html#/login";
 
 
 

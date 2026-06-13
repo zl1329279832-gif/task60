@@ -43,7 +43,7 @@
                         <a style="text-decoration:none" class="el-button el-button--success"
                            v-if="isAuth('fangwu','导入导出')"
                            icon="el-icon-download"
-                           href="http://localhost:8080/zonghexiaoqiguanlixitong/upload/fangwuMuBan.xls"
+                           href="/zonghexiaoqiguanlixitong/upload/fangwuMuBan.xls"
                         >批量导入房屋数据模板</a>
                         &nbsp;
                         <el-upload

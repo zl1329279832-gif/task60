@@ -47,7 +47,7 @@
                         <a style="text-decoration:none" class="el-button el-button--success"
                            v-if="isAuth('liuyan','导入导出')"
                            icon="el-icon-download"
-                           href="http://localhost:8080/zonghexiaoqiguanlixitong/upload/liuyanMuBan.xls"
+                           href="/zonghexiaoqiguanlixitong/upload/liuyanMuBan.xls"
                         >批量导入物业人员投诉数据模板</a>
                         &nbsp;
                         <el-upload
