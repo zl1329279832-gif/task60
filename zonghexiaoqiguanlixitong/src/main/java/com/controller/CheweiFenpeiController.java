@@ -140,36 +140,23 @@ public class CheweiFenpeiController {
 
     /**
     * 后端保存
+    * 分配车位：一个车位只能分给一户，分配成功后自动更新车位状态为已占用
     */
     @RequestMapping("/save")
     public R save(@RequestBody CheweiFenpeiEntity cheweiFenpei, HttpServletRequest request){
         logger.debug("save方法:,,Controller:{},,cheweiFenpei:{}",this.getClass().getName(),cheweiFenpei.toString());
 
         String role = String.valueOf(request.getSession().getAttribute("role"));
-        if(false)
-            return R.error(511,"永远不会进入");
-        else if("用户".equals(role))
-            cheweiFenpei.setYonghuId(Integer.valueOf(String.valueOf(request.getSession().getAttribute("userId"))));
+        Integer yonghuId = cheweiFenpei.getYonghuId();
+        if("用户".equals(role)){
+            yonghuId = Integer.valueOf(String.valueOf(request.getSession().getAttribute("userId")));
+        }
 
-        Wrapper<CheweiFenpeiEntity> queryWrapper = new EntityWrapper<CheweiFenpeiEntity>()
-            .eq("chewei_id", cheweiFenpei.getCheweiId())
-            .eq("yonghu_id", cheweiFenpei.getYonghuId())
-            ;
-
-        logger.info("sql语句:"+queryWrapper.getSqlSegment());
-        CheweiFenpeiEntity cheweiFenpeiEntity = cheweiFenpeiService.selectOne(queryWrapper);
-        if(cheweiFenpeiEntity==null){
-            cheweiFenpei.setCreateTime(new Date());
-            cheweiFenpeiService.insert(cheweiFenpei);
-            CheweiEntity cheweiEntity = new CheweiEntity();
-            cheweiEntity.setId(cheweiFenpei.getCheweiId());
-            cheweiEntity.setCheweiZhuangtaiTypes(1);
-            cheweiService.updateById(cheweiEntity);
-            cheweiFenpei.setCreateTime(new Date());
-            cheweiFenpeiService.insert(cheweiFenpei);
+        try {
+            cheweiFenpeiService.allocate(cheweiFenpei.getCheweiId(), yonghuId);
             return R.ok();
-        }else {
-            return R.error(511,"表中有相同数据");
+        } catch (EIException e) {
+            return R.error(511, e.getMsg());
         }
     }
 
@@ -194,15 +181,19 @@ public class CheweiFenpeiController {
 
 
     /**
-    * 删除
+    * 删除（释放车位）：删除分配记录并回滚车位状态为空闲
     */
     @RequestMapping("/delete")
     public R delete(@RequestBody Integer[] ids, HttpServletRequest request){
         logger.debug("delete:,,Controller:{},,ids:{}",this.getClass().getName(),ids.toString());
-        List<CheweiFenpeiEntity> oldCheweiFenpeiList =cheweiFenpeiService.selectBatchIds(Arrays.asList(ids));//要删除的数据
-        cheweiFenpeiService.deleteBatchIds(Arrays.asList(ids));
-
-        return R.ok();
+        try {
+            for (Integer id : ids) {
+                cheweiFenpeiService.release(id);
+            }
+            return R.ok();
+        } catch (EIException e) {
+            return R.error(511, e.getMsg());
+        }
     }
 
 

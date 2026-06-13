@@ -19,4 +19,18 @@ public interface CheweiFenpeiService extends IService<CheweiFenpeiEntity> {
     */
      PageUtils queryPage(Map<String, Object> params);
 
+    /**
+     * 分配车位：校验车位空闲 → 插入分配记录 → 更新车位状态为已占用
+     * 含乐观锁防并发
+     * @param cheweiId 车位id
+     * @param yonghuId 用户id
+     */
+    void allocate(Integer cheweiId, Integer yonghuId);
+
+    /**
+     * 释放车位：删除分配记录 → 回滚车位状态为空闲
+     * @param fenpeiId 分配记录id
+     */
+    void release(Integer fenpeiId);
+
 }

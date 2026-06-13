@@ -133,16 +133,18 @@ public class BaoxiuController {
 
     /**
     * 后端保存
+    * 用户提交报修，初始状态固定为「待处理」
     */
     @RequestMapping("/save")
     public R save(@RequestBody BaoxiuEntity baoxiu, HttpServletRequest request){
         logger.debug("save方法:,,Controller:{},,baoxiu:{}",this.getClass().getName(),baoxiu.toString());
 
         String role = String.valueOf(request.getSession().getAttribute("role"));
-        if(false)
-            return R.error(511,"永远不会进入");
-        else if("用户".equals(role))
+        if("用户".equals(role))
             baoxiu.setYonghuId(Integer.valueOf(String.valueOf(request.getSession().getAttribute("userId"))));
+
+        // 新提交的工单状态强制为「待处理」
+        baoxiu.setBaoxiuZhuangtaiTypes(BaoxiuService.STATUS_PENDING);
 
         Wrapper<BaoxiuEntity> queryWrapper = new EntityWrapper<BaoxiuEntity>()
             .eq("yonghu_id", baoxiu.getYonghuId())
@@ -196,6 +198,24 @@ public class BaoxiuController {
         baoxiuService.deleteBatchIds(Arrays.asList(ids));
 
         return R.ok();
+    }
+
+
+    /**
+     * 推进报修工单状态
+     * 物业人员操作：待处理→已接单→处理中→已完结
+     */
+    @RequestMapping("/advanceStatus")
+    public R advanceStatus(@RequestBody Map<String, Object> params, HttpServletRequest request){
+        Integer baoxiuId = params.get("id") == null ? null : Integer.valueOf(params.get("id").toString());
+        Integer targetStatus = params.get("baoxiuZhuangtaiTypes") == null ? null : Integer.valueOf(params.get("baoxiuZhuangtaiTypes").toString());
+        String role = String.valueOf(request.getSession().getAttribute("role"));
+        try {
+            baoxiuService.advanceStatus(baoxiuId, targetStatus, role);
+            return R.ok();
+        } catch (EIException e) {
+            return R.error(511, e.getMsg());
+        }
     }
 
 
